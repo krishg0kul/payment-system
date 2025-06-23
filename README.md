@@ -230,7 +230,7 @@ DB_PASSWORD=your-db-password
 
 # JWT
 JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRES_IN=24h
+JWT_EXPIRES_IN=8h
 
 # CORS
 FRONTEND_URL=https://your-frontend-domain.com
