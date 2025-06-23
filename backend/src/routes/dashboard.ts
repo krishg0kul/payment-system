@@ -45,18 +45,6 @@ const router = Router();
  *                       type: array
  *                       items:
  *                         $ref: '#/components/schemas/Account'
- *                     paymentTrends:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           date:
- *                             type: string
- *                             format: date
- *                           count:
- *                             type: integer
- *                           amount:
- *                             type: number
  */
 router.get('/summary', authenticateToken, getDashboardSummary);
 

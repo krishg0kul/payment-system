@@ -61,12 +61,7 @@ export const getDashboardSummary = asyncHandler(async (req: Request, res: Respon
         totalDebits: parseFloat(total_debits),
       },
       recentPayments,
-      topAccounts: topAccountsResult.rows,
-      paymentTrends: trendsResult.rows.map(row => ({
-        date: row.date,
-        count: parseInt(row.count),
-        amount: parseFloat(row.total_amount),
-      })),
+      topAccounts: topAccountsResult.rows
     },
   });
 }); 

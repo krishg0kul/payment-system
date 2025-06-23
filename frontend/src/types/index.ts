@@ -30,11 +30,6 @@ export interface DashboardData {
   };
   recentPayments: Payment[];
   topAccounts: Account[];
-  paymentTrends: Array<{
-    date: string;
-    count: number;
-    amount: number;
-  }>;
 }
 
 export interface ApiResponse<T> {

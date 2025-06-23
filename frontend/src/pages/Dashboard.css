@@ -125,6 +125,10 @@
   color: #27ae60;
 }
 
+.account-balance.negative {
+  color: #e74c3c;
+}
+
 .payment-trends {
   display: flex;
   flex-direction: column;

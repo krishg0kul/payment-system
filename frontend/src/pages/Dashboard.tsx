@@ -50,7 +50,7 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  const { summary, recentPayments, topAccounts, paymentTrends } = dashboardData;
+  const { summary, recentPayments, topAccounts } = dashboardData;
 
   return (
     <div className="page-container">
@@ -114,7 +114,9 @@ const Dashboard: React.FC = () => {
               {topAccounts.map((account) => (
                 <div key={account.id} className="account-item">
                   <div className="account-name">{account.name}</div>
-                  <div className="account-balance">${Number(account.balance).toFixed(2)}</div>
+                  <div className={`account-balance ${Number(account.balance) < 0 ? 'negative' : ''}`}>
+                    ${Number(account.balance).toFixed(2)}
+                  </div>
                 </div>
               ))}
             </div>
@@ -123,27 +125,6 @@ const Dashboard: React.FC = () => {
           )}
         </div>
 
-        {/* Payment Trends */}
-        <div className="dashboard-section">
-          <h3>Recent Payment Activity</h3>
-          {paymentTrends.length > 0 ? (
-            <div className="payment-trends">
-              {paymentTrends.map((trend, index) => (
-                <div key={index} className="trend-item">
-                  <div className="trend-date">
-                    {new Date(trend.date).toLocaleDateString()}
-                  </div>
-                  <div className="trend-stats">
-                    <span>{trend.count} payments</span>
-                    <span>${Number(trend.amount).toFixed(2)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div>No payment trends available</div>
-          )}
-        </div>
       </div>
     </div>
   );
