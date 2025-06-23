@@ -125,7 +125,7 @@
   color: #27ae60;
 }
 
-.account-balance.negative {
+.negative {
   color: #e74c3c;
 }
 
@@ -157,7 +157,6 @@
 }
 
 .loading, .error {
-  text-align: center;
   padding: 40px;
   font-size: 18px;
 }

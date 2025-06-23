@@ -63,8 +63,6 @@ setupSwagger(app);
 
 // Catch-all for undefined routes
 app.use(notFoundHandler);
-
-// Global error handling middleware (must be last)
 app.use(errorHandler);
 
 // Start server
@@ -88,16 +86,5 @@ const startServer = async () => {
 };
 
 startServer();
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
-  process.exit(0);
-});
-
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
-  process.exit(0);
-});
 
 export default app; 

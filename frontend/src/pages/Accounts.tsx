@@ -76,7 +76,7 @@ const Accounts: React.FC = () => {
           fontWeight: 'bold',
           color: parseFloat(value) >= 0 ? '#27ae60' : '#e74c3c',
         }}>
-          ${parseFloat(value).toFixed(2)}
+         {Number(value) < 0 ? '-': ''}${Math.abs(parseFloat(value)).toFixed(2)}
         </span>
       ),
     },

@@ -1,87 +1,146 @@
 import { Request, Response } from 'express';
 import { PaymentModel } from '../models/Payment';
-import { ApiError, asyncHandler } from '../middleware/errorHandler';
 
-export const getPayments = asyncHandler(async (req: Request, res: Response) => {
-  const { page, limit, search, account_id } = req.query as any;
-  
-  const result = await PaymentModel.findAll({
-    page: parseInt(page) || 1,
-    limit: parseInt(limit) || 10,
-    search: search || undefined,
-    account_id: account_id ? parseInt(account_id) : undefined,
-  });
+export const getPayments = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { page, limit, search, account_id } = req.query as any;
+    
+    const result = await PaymentModel.findAll({
+      page: parseInt(page) || 1,
+      limit: parseInt(limit) || 10,
+      search: search || undefined,
+      account_id: account_id ? parseInt(account_id) : undefined,
+    });
 
-  res.json({
-    success: true,
-    data: result.data,
-    pagination: result.pagination,
-  });
-});
-
-export const getPayment = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  
-  const payment = await PaymentModel.findById(parseInt(id));
-  
-  if (!payment) {
-    throw new ApiError('Payment not found', 404);
+    res.json({
+      success: true,
+      data: result.data,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    console.error('Get payments error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch payments'
+    });
   }
+};
 
-  res.json({
-    success: true,
-    data: payment,
-  });
-});
+export const getPayment = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    
+    const payment = await PaymentModel.findById(parseInt(id));
+    
+    if (!payment) {
+      res.status(404).json({
+        success: false,
+        error: 'Payment not found'
+      });
+      return;
+    }
 
-export const createPayment = asyncHandler(async (req: Request, res: Response) => {
-  const payment = await PaymentModel.create(req.body);
-
-  res.status(201).json({
-    success: true,
-    data: payment,
-    message: 'Payment created successfully',
-  });
-});
-
-export const updatePayment = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  
-  const payment = await PaymentModel.update(parseInt(id), req.body);
-  
-  if (!payment) {
-    throw new ApiError('Payment not found', 404);
+    res.json({
+      success: true,
+      data: payment,
+    });
+  } catch (error) {
+    console.error('Get payment error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch payment'
+    });
   }
+};
 
-  res.json({
-    success: true,
-    data: payment,
-    message: 'Payment updated successfully',
-  });
-});
+export const createPayment = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const payment = await PaymentModel.create(req.body);
 
-export const deletePayment = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  
-  const deleted = await PaymentModel.delete(parseInt(id));
-  
-  if (!deleted) {
-    throw new ApiError('Payment not found', 404);
+    res.status(201).json({
+      success: true,
+      data: payment,
+      message: 'Payment created successfully',
+    });
+  } catch (error) {
+    console.error('Create payment error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create payment'
+    });
   }
+};
 
-  res.json({
-    success: true,
-    message: 'Payment deleted successfully',
-  });
-});
+export const updatePayment = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    
+    const payment = await PaymentModel.update(parseInt(id), req.body);
+    
+    if (!payment) {
+      res.status(404).json({
+        success: false,
+        error: 'Payment not found'
+      });
+      return;
+    }
 
-export const getRecentPayments = asyncHandler(async (req: Request, res: Response) => {
-  const { limit } = req.query as any;
-  
-  const payments = await PaymentModel.getRecentPayments(parseInt(limit) || 10);
+    res.json({
+      success: true,
+      data: payment,
+      message: 'Payment updated successfully',
+    });
+  } catch (error) {
+    console.error('Update payment error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update payment'
+    });
+  }
+};
 
-  res.json({
-    success: true,
-    data: payments,
-  });
-}); 
+export const deletePayment = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    
+    const deleted = await PaymentModel.delete(parseInt(id));
+    
+    if (!deleted) {
+      res.status(404).json({
+        success: false,
+        error: 'Payment not found'
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      message: 'Payment deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete payment error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete payment'
+    });
+  }
+};
+
+export const getRecentPayments = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { limit } = req.query as any;
+    
+    const payments = await PaymentModel.getRecentPayments(parseInt(limit) || 10);
+
+    res.json({
+      success: true,
+      data: payments,
+    });
+  } catch (error) {
+    console.error('Get recent payments error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch recent payments'
+    });
+  }
+}; 

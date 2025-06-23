@@ -11,17 +11,15 @@ import './Dashboard.css'; // Import for page-container styles
 const Payments: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { items: payments, loading, error } = useSelector((state: RootState) => state.payments);
-  
+  const { items, loading, error } = useSelector((state: RootState) => state.payments);
+
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
   const [total, setTotal] = useState(0);
-  const [accounts, setAccounts] = useState<any[]>([]);
 
   useEffect(() => {
     fetchPayments();
-    fetchAccounts();
   }, [page, pageSize, searchTerm]);
 
   const fetchPayments = async () => {
@@ -32,7 +30,7 @@ const Payments: React.FC = () => {
         limit: pageSize,
         search: searchTerm || undefined,
       });
-      
+
       dispatch(setPayments(response.data as Payment[]));
       setTotal(response.pagination?.total || 0);
       dispatch(setError(null));
@@ -41,15 +39,6 @@ const Payments: React.FC = () => {
       console.error('Fetch payments error:', err);
     } finally {
       dispatch(setLoading(false));
-    }
-  };
-
-  const fetchAccounts = async () => {
-    try {
-      const response = await apiService.getAccounts({ limit: 100 });
-      setAccounts(response.data as any[]);
-    } catch (err) {
-      console.error('Fetch accounts error:', err);
     }
   };
 
@@ -89,9 +78,9 @@ const Payments: React.FC = () => {
       key: 'amount',
       label: 'Amount',
       render: (value, row) => (
-        <span style={{ 
+        <span style={{
           color: row.type === 'credit' ? '#27ae60' : '#e74c3c',
-          fontWeight: 'bold' 
+          fontWeight: 'bold'
         }}>
           {row.type === 'credit' ? '+' : '-'}${parseFloat(value).toFixed(2)}
         </span>
@@ -101,7 +90,7 @@ const Payments: React.FC = () => {
       key: 'type',
       label: 'Type',
       render: (value) => (
-        <span style={{ 
+        <span style={{
           padding: '4px 8px',
           borderRadius: '4px',
           fontSize: '12px',
@@ -120,7 +109,7 @@ const Payments: React.FC = () => {
     },
   ];
 
-  if (loading && payments.length === 0) {
+  if (loading && items.length === 0) {
     return (
       <div className="page-container">
         <div style={{ textAlign: 'center', padding: 40 }}>Loading payments...</div>
@@ -132,7 +121,7 @@ const Payments: React.FC = () => {
     <div className="page-container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2>Payments</h2>
-        <button 
+        <button
           style={{
             padding: '10px 20px',
             backgroundColor: '#3498db',
@@ -163,7 +152,7 @@ const Payments: React.FC = () => {
 
       <Table
         columns={columns}
-        data={payments}
+        data={items}
         onEdit={handleEdit}
         onDelete={handleDelete}
         page={page}

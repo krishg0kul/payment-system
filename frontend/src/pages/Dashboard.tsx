@@ -67,7 +67,7 @@ const Dashboard: React.FC = () => {
           
           <div className="dashboard-card">
             <h3>Total Balance</h3>
-            <div className="dashboard-value">${Number(summary.totalBalance).toFixed(2)}</div>
+            <div className={`dashboard-value ${Number(summary.totalBalance) < 0 ? 'negative' : ''}`}>{summary.totalBalance < 0 ? '-':''}${Math.abs(Number(summary.totalBalance)).toFixed(2)}</div>
           </div>
           
           <div className="dashboard-card">
@@ -115,7 +115,7 @@ const Dashboard: React.FC = () => {
                 <div key={account.id} className="account-item">
                   <div className="account-name">{account.name}</div>
                   <div className={`account-balance ${Number(account.balance) < 0 ? 'negative' : ''}`}>
-                    ${Number(account.balance).toFixed(2)}
+                    {account.balance < 0? '-':''}${Math.abs(Number(account.balance)).toFixed(2)}
                   </div>
                 </div>
               ))}

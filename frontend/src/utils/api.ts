@@ -1,14 +1,56 @@
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { ApiResponse, PaginationParams, PaymentFormData, AccountFormData } from '../types';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
 class ApiService {
-  private baseURL: string;
+  private client: AxiosInstance;
   private token: string | null;
 
   constructor() {
-    this.baseURL = API_BASE_URL;
     this.token = null;
+    this.client = axios.create({
+      baseURL: API_BASE_URL,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    // Request interceptor to add auth token
+    this.client.interceptors.request.use(
+      async (config) => {
+        if (!this.token) {
+          await this.getToken();
+        }
+        if (this.token) {
+          config.headers.Authorization = `Bearer ${this.token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    // Response interceptor to handle token expiration
+    this.client.interceptors.response.use(
+      (response: AxiosResponse) => response,
+      async (error) => {
+        if (error.response?.status === 403 && this.token) {
+          console.log('Token expired, getting fresh token...');
+          this.token = null;
+          // Retry the original request
+          const originalRequest = error.config;
+          if (!originalRequest._retry) {
+            originalRequest._retry = true;
+            await this.getToken();
+            if (this.token) {
+              originalRequest.headers.Authorization = `Bearer ${this.token}`;
+            }
+            return this.client(originalRequest);
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
   }
 
   // Get a fresh demo token from the backend
@@ -18,19 +60,8 @@ class ApiService {
     }
 
     try {
-      const response = await fetch(`${this.baseURL}/auth/demo-token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get demo token');
-      }
-
-      const data = await response.json();
-      this.token = data.data.token;
+      const response = await axios.post(`${API_BASE_URL}/auth/demo-token`);
+      this.token = response.data.data.token;
       
       if (!this.token) {
         throw new Error('No token received from server');
@@ -38,136 +69,87 @@ class ApiService {
       
       console.log('Demo token obtained successfully');
       return this.token;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to get demo token:', error);
-      throw new Error('Authentication failed');
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to authenticate';
+      throw new Error(`Authentication failed: ${errorMessage}`);
     }
   }
 
   private async request<T>(
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     endpoint: string,
-    options: RequestInit = {}
+    data?: any,
+    params?: any
   ): Promise<ApiResponse<T>> {
-    const url = `${this.baseURL}${endpoint}`;
-    
-    // Get fresh token
-    const token = await this.getToken();
-    
-    const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers,
-      },
-      ...options,
-    };
-
     try {
-      const response = await fetch(url, config);
-      const data = await response.json();
-
-      if (!response.ok) {
-        // If token is invalid, clear it and retry once
-        if (response.status === 403 && this.token) {
-          console.log('🔄 Token expired, getting fresh token...');
-          this.token = null;
-          return this.request(endpoint, options); // Retry with fresh token
-        }
-        throw new Error(data.error || `HTTP error! status: ${response.status}`);
-      }
-
-      return data;
-    } catch (error) {
+      const response = await this.client.request({
+        method,
+        url: endpoint,
+        data,
+        params,
+      });
+      return response.data;
+    } catch (error: any) {
       console.error('API request failed:', error);
-      throw error;
+      const errorMessage = error.response?.data?.error || error.message || 'Unknown error';
+      throw new Error(errorMessage);
     }
   }
 
   // Dashboard API
   async getDashboardSummary(): Promise<ApiResponse<any>> {
-    return this.request<any>('/dashboard/summary');
+    return this.request<any>('GET', '/dashboard/summary');
   }
 
   // Accounts API
   async getAccounts(params: PaginationParams = {}): Promise<ApiResponse<any[]>> {
-    const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        searchParams.append(key, value.toString());
-      }
-    });
-    
-    const queryString = searchParams.toString();
-    return this.request<any[]>(`/accounts${queryString ? `?${queryString}` : ''}`);
+    return this.request<any[]>('GET', '/accounts', undefined, params);
   }
 
   async getAccount(id: number): Promise<ApiResponse<any>> {
-    return this.request<any>(`/accounts/${id}`);
+    return this.request<any>('GET', `/accounts/${id}`);
   }
 
   async getAccountSummary(id: number): Promise<ApiResponse<any>> {
-    return this.request<any>(`/accounts/${id}/summary`);
+    return this.request<any>('GET', `/accounts/${id}/summary`);
   }
 
   async createAccount(data: AccountFormData): Promise<ApiResponse<any>> {
-    return this.request<any>('/accounts', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    return this.request<any>('POST', '/accounts', data);
   }
 
   async updateAccount(id: number, data: Partial<AccountFormData>): Promise<ApiResponse<any>> {
-    return this.request<any>(`/accounts/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
+    return this.request<any>('PUT', `/accounts/${id}`, data);
   }
 
   async deleteAccount(id: number): Promise<ApiResponse<any>> {
-    return this.request<any>(`/accounts/${id}`, {
-      method: 'DELETE',
-    });
+    return this.request<any>('DELETE', `/accounts/${id}`);
   }
 
   // Payments API
   async getPayments(params: PaginationParams = {}): Promise<ApiResponse<any[]>> {
-    const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        searchParams.append(key, value.toString());
-      }
-    });
-    
-    const queryString = searchParams.toString();
-    return this.request<any[]>(`/payments${queryString ? `?${queryString}` : ''}`);
+    return this.request<any[]>('GET', '/payments', undefined, params);
   }
 
   async getPayment(id: number): Promise<ApiResponse<any>> {
-    return this.request<any>(`/payments/${id}`);
+    return this.request<any>('GET', `/payments/${id}`);
   }
 
   async getRecentPayments(limit: number = 10): Promise<ApiResponse<any[]>> {
-    return this.request<any[]>(`/payments/recent?limit=${limit}`);
+    return this.request<any[]>('GET', '/payments/recent', undefined, { limit });
   }
 
   async createPayment(data: PaymentFormData): Promise<ApiResponse<any>> {
-    return this.request<any>('/payments', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    return this.request<any>('POST', '/payments', data);
   }
 
   async updatePayment(id: number, data: Partial<PaymentFormData>): Promise<ApiResponse<any>> {
-    return this.request<any>(`/payments/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
+    return this.request<any>('PUT', `/payments/${id}`, data);
   }
 
   async deletePayment(id: number): Promise<ApiResponse<any>> {
-    return this.request<any>(`/payments/${id}`, {
-      method: 'DELETE',
-    });
+    return this.request<any>('DELETE', `/payments/${id}`);
   }
 }
 

@@ -96,6 +96,7 @@ export class AccountModel {
        RETURNING id, name, balance, created_at, updated_at`,
       [name, balance]
     );
+    console.log('test', result.rows);
     return result.rows[0];
   }
 

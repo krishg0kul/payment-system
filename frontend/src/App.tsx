@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Header } from './components';
 import Navigation from './layouts/Navigation';
 import Dashboard from './pages/Dashboard';
@@ -24,6 +24,7 @@ function App() {
             <Route path="/accounts" element={<Accounts />} />
             <Route path="/accounts/add" element={<AddEditAccount />} />
             <Route path="/accounts/edit/:id" element={<AddEditAccount />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </div>

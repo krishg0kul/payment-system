@@ -12,10 +12,8 @@ const options = {
     },
     servers: [
       {
-        url: process.env.NODE_ENV === 'production' 
-          ? 'https://your-domain.com' 
-          : `http://localhost:${process.env.PORT || 5000}`,
-        description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server',
+        url: `http://localhost:${process.env.PORT || 8080}`,
+        description: 'Development server',
       },
     ],
     components: {
@@ -44,5 +42,5 @@ export const setupSwagger = (app: Express): void => {
     customSiteTitle: 'Payments API Documentation',
   }));
 
-  console.log(`📖 Swagger documentation available at http://localhost:${process.env.PORT || 5000}/api-docs`);
+  console.log(`Swagger documentation available at http://localhost:${process.env.PORT || 8080}/api-docs`);
 }; 
