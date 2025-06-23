@@ -218,7 +218,7 @@ The system is designed with JWT authentication in mind. Currently uses a mock to
 
 ### Backend (.env)
 ```env
-PORT=5000
+PORT=8080
 NODE_ENV=production
 
 # Database
