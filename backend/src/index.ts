@@ -11,15 +11,10 @@ import accountsRoutes from './routes/accounts';
 import paymentsRoutes from './routes/payments';
 import dashboardRoutes from './routes/dashboard';
 import authRoutes from './routes/auth';
-
-// Import middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 // Import Swagger setup
 import { setupSwagger } from './config/swagger';
-
-// Import data seeder
-// import { seedDatabase } from './utils/seedData';
 
 // Load environment variables
 dotenv.config();
@@ -40,7 +35,6 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging middleware (development only)
 if (process.env.NODE_ENV === 'development') {
   app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -81,11 +75,6 @@ const startServer = async () => {
     
     // Initialize database tables
     await initializeDatabase();
-    
-    // Seed database with sample data (for demo purposes)
-    // if (process.env.NODE_ENV === 'development') {
-    //   await seedDatabase();
-    // }
     
     // Start the server
     app.listen(PORT, () => {
